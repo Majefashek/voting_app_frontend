@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polling Unit Form</title>
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <ul class="nav nav-pills nav-fill">
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="pollinunit.html"
+          >Polling Units</a
+        >
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="LgaList.html">LGA</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="addpollingunitresult.html"
+          >Add New Polling Unit Result</a
+        >
+      </li>
+    </ul>
+
+    <div class="container mt-5">
+      <h2>Post New Polling Unit Result</h2>
+      <form id="pollingUnitForm">
+        <div class="form-group">
+          <label for="lgaSelect">Local Government Area</label>
+          <select class="form-control" id="lgaSelect" required>
+            <option value="">Select LGA</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="wardSelect">Ward</label>
+          <select class="form-control" id="wardSelect" required>
+            <option value="">Select Ward</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="pollingUnitNumber">Polling Unit Number</label>
+          <input
+            type="text"
+            class="form-control"
+            id="pollingUnitNumber"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="pollingUnitName">Polling Unit Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="pollingUnitName"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="pollingUnitDescription">Polling Unit Description</label>
+          <input
+            type="text"
+            class="form-control"
+            id="pollingUnitDescription"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="latitude">Latitude</label>
+          <input type="text" class="form-control" id="latitude" required />
+        </div>
+        <div class="form-group">
+          <label for="longitude">Longitude</label>
+          <input type="text" class="form-control" id="longitude" required />
+        </div>
+        <div class="form-group">
+          <label for="enteredByUser">Entered by User</label>
+          <input type="text" class="form-control" id="enteredByUser" required />
+        </div>
+        <div class="form-group">
+          <label for="userIpAddress">User IP Address</label>
+          <input type="text" class="form-control" id="userIpAddress" required />
+        </div>
+        <div class="form-group">
+          <label for="partyAbbreviation">Party Abbreviation</label>
+          <input
+            type="text"
+            class="form-control"
+            id="partyAbbreviation"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="partyScore">Party Score</label>
+          <input type="number" class="form-control" id="partyScore" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // Fetch LGAs
+        $.getJSON(
+          'https://maje.pythonanywhere.com/api/local_governments',
+          function (data) {
+            let lgaSelect = $('#lgaSelect');
+            $.each(data, function (key, entry) {
+              lgaSelect.append(
+                $('<option></option>')
+                  .attr('value', entry.lga_id)
+                  .text(entry.lga_name)
+              );
+            });
+          }
+        );
+
+        // Fetch Wards based on selected LGA
+        $('#lgaSelect').change(function () {
+          let lgaId = $(this).val();
+          let wardSelect = $('#wardSelect');
+          wardSelect.empty();
+          wardSelect.append(
+            $('<option></option>').attr('value', '').text('Select Ward')
+          );
+          if (lgaId) {
+            $.getJSON(
+              `https://maje.pythonanywhere.com/api/wards_under_lga/${lgaId}`,
+              function (data) {
+                $.each(data, function (key, entry) {
+                  wardSelect.append(
+                    $('<option></option>')
+                      .attr('value', entry.ward_id)
+                      .text(entry.ward_name)
+                  );
+                  wardSelect.data(
+                    'uniqueid-' + entry.ward_id,
+                    entry.uniquewardid
+                  );
+                });
+              }
+            );
+          }
+        });
+
+        // Handle form submission
+        $('#pollingUnitForm').submit(function (event) {
+          event.preventDefault();
+          let wardSelect = $('#wardSelect');
+          let selectedWardId = wardSelect.val();
+          let selectedWardUniqueId = wardSelect.data(
+            'uniqueid-' + selectedWardId
+          );
+
+          let formData = {
+            lga_id: $('#lgaSelect').val(),
+            ward_id: selectedWardId,
+            uniquewardid: selectedWardUniqueId,
+            polling_unit_number: $('#pollingUnitNumber').val(),
+            polling_unit_name: $('#pollingUnitName').val(),
+            polling_unit_description: $('#pollingUnitDescription').val(),
+            lat: $('#latitude').val(),
+            long: $('#longitude').val(),
+            entered_by_user: $('#enteredByUser').val(),
+            user_ip_address: $('#userIpAddress').val(),
+            results: [
+              {
+                party_abbreviation: $('#partyAbbreviation').val(),
+                party_score: $('#partyScore').val(),
+              },
+            ],
+          };
+          $.ajax({
+            url: 'https://maje.pythonanywhere.com/api/post_new_polling_unit_result/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function (response) {
+              alert('Polling unit result posted successfully!');
+              $('#pollingUnitForm')[0].reset();
+              $('#wardSelect')
+                .empty()
+                .append(
+                  $('<option></option>').attr('value', '').text('Select Ward')
+                );
+            },
+            error: function (error) {
+              alert('An error occurred while posting the polling unit result.');
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
