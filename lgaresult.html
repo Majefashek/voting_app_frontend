@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LGA Results</title>
+  <!-- Include Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Include jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Local Government Results</h1>
+    <div id="lga-results"></div>
+  </div>
+  <script>
+    $(document).ready(function () {
+      // Get the local government ID from the URL query parameter
+      var urlParams = new URLSearchParams(window.location.search);
+      var localGovernmentId = urlParams.get('lg_id');
+
+      if (localGovernmentId) {
+        // Fetch the local government results
+        $.ajax({
+          url: `https://maje.pythonanywhere.com/api/local_governments/results/${localGovernmentId}`,
+          type: "GET",
+          headers: {
+            accept: "application/json",
+            // CSRF token removed as it might not be necessary
+          },
+          success: function (data) {
+            console.log("Results received:", data); // Log the received data for debugging
+
+            // Clear any previous results
+            $("#lga-results").empty();
+
+            // Iterate over the data and display each result
+            $.each(data, function (party, score) {
+              var resultCard = `
+                <div class="card text-center mb-3">
+                  <div class="card-body">
+                    <h5 class="card-title">${party}: Score ${score}</h5>
+                  </div>
+                </div>
+              `;
+              $("#lga-results").append(resultCard);
+            });
+          },
+          error: function (xhr, status, error) {
+            console.error("Error fetching results:", xhr, status, error);
+            $("#lga-results").html(`<p>Error fetching results: ${xhr.responseText}</p>`);
+          },
+        });
+      } else {
+        $("#lga-results").html("<p>No local government ID provided.</p>");
+      }
+    });
+  </script>
+</body>
+</html>

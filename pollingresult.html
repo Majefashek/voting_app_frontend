@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polling Results</title>
+  <!-- Include Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Include jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Polling Results</h1>
+    <div id="polling-results"></div>
+  </div>
+  <script>
+    $(document).ready(function () {
+      // Get the polling unit ID from the URL query parameter
+      var urlParams = new URLSearchParams(window.location.search);
+      var pollingUnitId = urlParams.get('id');
+
+      if (pollingUnitId) {
+        // Fetch the polling unit results
+        $.ajax({
+          url: `https://maje.pythonanywhere.com/api/polling_units/${pollingUnitId}/results/`,
+          type: "GET",
+          headers: {
+            accept: "application/json",
+            "X-CSRFToken": "Onzn2vB035p98q8WqULsaWuxxnO0cOweIfmF6fDEN5TVRDIQCklp8vuaa6JUCHM7",
+          },
+          success: function (data) {
+            console.log('e work')
+            console.log(data)
+            console.log("Results received:", data); // Log the received data for debugging
+
+            // Assuming data is an array of results, iterate and display them
+            data.forEach(function (result) {
+              var resultCard = `
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h5 class="card-title">${result.party_abbreviation}: Score ${result.party_score}</h5>
+                  </div>
+                </div>
+              `;
+              $("#polling-results").append(resultCard);
+            });
+          },
+          error: function (error) {
+            console.log("Error:", error);
+            $("#polling-results").html("<p>Error fetching results. Please try again later.</p>");
+          },
+        });
+      } else {
+        $("#polling-results").html("<p>No polling unit ID provided.</p>");
+      }
+    });
+  </script>
+</body>
+</html>
