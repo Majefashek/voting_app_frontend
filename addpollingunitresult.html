@@ -88,12 +88,15 @@
         </div>
         <div class="form-group">
           <label for="partyAbbreviation">Party Abbreviation</label>
-          <input
-            type="text"
-            class="form-control"
-            id="partyAbbreviation"
-            required
-          />
+          <select class="form-control" id="partyAbbreviation" required>
+            <option value="">Select Party</option>
+            <option value="PDP">PDP</option>
+            <option value="DPP">DPP</option>
+            <option value="ACN">ACN</option>
+            <option value="PPA">PPA</option>
+            <option value="CDC">CDC</option>
+            <option value="JP">JP</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="partyScore">Party Score</label>
@@ -107,13 +110,13 @@
       $(document).ready(function () {
         // Fetch LGAs
         $.getJSON(
-          'https://maje.pythonanywhere.com/api/local_governments',
+          "https://maje.pythonanywhere.com/api/local_governments",
           function (data) {
-            let lgaSelect = $('#lgaSelect');
+            let lgaSelect = $("#lgaSelect");
             $.each(data, function (key, entry) {
               lgaSelect.append(
-                $('<option></option>')
-                  .attr('value', entry.lga_id)
+                $("<option></option>")
+                  .attr("value", entry.lga_id)
                   .text(entry.lga_name)
               );
             });
@@ -121,12 +124,12 @@
         );
 
         // Fetch Wards based on selected LGA
-        $('#lgaSelect').change(function () {
+        $("#lgaSelect").change(function () {
           let lgaId = $(this).val();
-          let wardSelect = $('#wardSelect');
+          let wardSelect = $("#wardSelect");
           wardSelect.empty();
           wardSelect.append(
-            $('<option></option>').attr('value', '').text('Select Ward')
+            $("<option></option>").attr("value", "").text("Select Ward")
           );
           if (lgaId) {
             $.getJSON(
@@ -134,12 +137,12 @@
               function (data) {
                 $.each(data, function (key, entry) {
                   wardSelect.append(
-                    $('<option></option>')
-                      .attr('value', entry.ward_id)
+                    $("<option></option>")
+                      .attr("value", entry.ward_id)
                       .text(entry.ward_name)
                   );
                   wardSelect.data(
-                    'uniqueid-' + entry.ward_id,
+                    "uniqueid-" + entry.ward_id,
                     entry.uniquewardid
                   );
                 });
@@ -148,49 +151,64 @@
           }
         });
 
+        // Get user's geolocation and fill latitude and longitude fields
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (position) {
+              $("#latitude").val(position.coords.latitude);
+              $("#longitude").val(position.coords.longitude);
+            },
+            function (error) {
+              console.error("Error getting geolocation: ", error);
+            }
+          );
+        } else {
+          console.error("Geolocation is not supported by this browser.");
+        }
+
         // Handle form submission
-        $('#pollingUnitForm').submit(function (event) {
+        $("#pollingUnitForm").submit(function (event) {
           event.preventDefault();
-          let wardSelect = $('#wardSelect');
+          let wardSelect = $("#wardSelect");
           let selectedWardId = wardSelect.val();
           let selectedWardUniqueId = wardSelect.data(
-            'uniqueid-' + selectedWardId
+            "uniqueid-" + selectedWardId
           );
 
           let formData = {
-            lga_id: $('#lgaSelect').val(),
+            lga_id: $("#lgaSelect").val(),
             ward_id: selectedWardId,
             uniquewardid: selectedWardUniqueId,
-            polling_unit_number: $('#pollingUnitNumber').val(),
-            polling_unit_name: $('#pollingUnitName').val(),
-            polling_unit_description: $('#pollingUnitDescription').val(),
-            lat: $('#latitude').val(),
-            long: $('#longitude').val(),
-            entered_by_user: $('#enteredByUser').val(),
-            user_ip_address: $('#userIpAddress').val(),
+            polling_unit_number: $("#pollingUnitNumber").val(),
+            polling_unit_name: $("#pollingUnitName").val(),
+            polling_unit_description: $("#pollingUnitDescription").val(),
+            lat: $("#latitude").val(),
+            long: $("#longitude").val(),
+            entered_by_user: $("#enteredByUser").val(),
+            user_ip_address: $("#userIpAddress").val(),
             results: [
               {
-                party_abbreviation: $('#partyAbbreviation').val(),
-                party_score: $('#partyScore').val(),
+                party_abbreviation: $("#partyAbbreviation").val(),
+                party_score: $("#partyScore").val(),
               },
             ],
           };
           $.ajax({
-            url: 'https://maje.pythonanywhere.com/api/post_new_polling_unit_result/',
-            type: 'POST',
-            contentType: 'application/json',
+            url: "https://maje.pythonanywhere.com/api/post_new_polling_unit_result/",
+            type: "POST",
+            contentType: "application/json",
             data: JSON.stringify(formData),
             success: function (response) {
-              alert('Polling unit result posted successfully!');
-              $('#pollingUnitForm')[0].reset();
-              $('#wardSelect')
+              alert("Polling unit result posted successfully!");
+              $("#pollingUnitForm")[0].reset();
+              $("#wardSelect")
                 .empty()
                 .append(
-                  $('<option></option>').attr('value', '').text('Select Ward')
+                  $("<option></option>").attr("value", "").text("Select Ward")
                 );
             },
             error: function (error) {
-              alert('An error occurred while posting the polling unit result.');
+              alert("An error occurred while posting the polling unit result.");
             },
           });
         });
