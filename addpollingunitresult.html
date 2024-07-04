@@ -4,27 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Polling Unit Form</title>
-    <link
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   </head>
   <body>
     <ul class="nav nav-pills nav-fill">
       <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href="pollinunit.html"
-          >Polling Units</a
-        >
+        <a class="nav-link active" aria-current="page" href="pollinunit.html">Polling Units</a>
       </li>
       <li class="nav-item">
         <a class="nav-link active" href="LgaList.html">LGA</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link active" href="addpollingunitresult.html"
-          >Add New Polling Unit Result</a
-        >
+        <a class="nav-link active" href="addpollingunitresult.html">Add New Polling Unit Result</a>
       </li>
     </ul>
 
@@ -45,30 +38,15 @@
         </div>
         <div class="form-group">
           <label for="pollingUnitNumber">Polling Unit Number</label>
-          <input
-            type="text"
-            class="form-control"
-            id="pollingUnitNumber"
-            required
-          />
+          <input type="text" class="form-control" id="pollingUnitNumber" required />
         </div>
         <div class="form-group">
           <label for="pollingUnitName">Polling Unit Name</label>
-          <input
-            type="text"
-            class="form-control"
-            id="pollingUnitName"
-            required
-          />
+          <input type="text" class="form-control" id="pollingUnitName" required />
         </div>
         <div class="form-group">
           <label for="pollingUnitDescription">Polling Unit Description</label>
-          <input
-            type="text"
-            class="form-control"
-            id="pollingUnitDescription"
-            required
-          />
+          <input type="text" class="form-control" id="pollingUnitDescription" required />
         </div>
         <div class="form-group">
           <label for="latitude">Latitude</label>
@@ -86,22 +64,42 @@
           <label for="userIpAddress">User IP Address</label>
           <input type="text" class="form-control" id="userIpAddress" required />
         </div>
+        
+        <!-- Multiple Party Scores -->
         <div class="form-group">
-          <label for="partyAbbreviation">Party Abbreviation</label>
-          <select class="form-control" id="partyAbbreviation" required>
-            <option value="">Select Party</option>
-            <option value="PDP">PDP</option>
-            <option value="DPP">DPP</option>
-            <option value="ACN">ACN</option>
-            <option value="PPA">PPA</option>
-            <option value="CDC">CDC</option>
-            <option value="JP">JP</option>
-          </select>
+          <label>Party Scores</label>
+          <div class="form-row">
+            <div class="col">
+              <label for="partyPDP">PDP</label>
+              <input type="number" class="form-control" id="partyPDP" placeholder="Score for PDP" />
+            </div>
+            <div class="col">
+              <label for="partyDPP">DPP</label>
+              <input type="number" class="form-control" id="partyDPP" placeholder="Score for DPP" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col">
+              <label for="partyACN">ACN</label>
+              <input type="number" class="form-control" id="partyACN" placeholder="Score for ACN" />
+            </div>
+            <div class="col">
+              <label for="partyPPA">PPA</label>
+              <input type="number" class="form-control" id="partyPPA" placeholder="Score for PPA" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col">
+              <label for="partyCDC">CDC</label>
+              <input type="number" class="form-control" id="partyCDC" placeholder="Score for CDC" />
+            </div>
+            <div class="col">
+              <label for="partyJP">JP</label>
+              <input type="number" class="form-control" id="partyJP" placeholder="Score for JP" />
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="partyScore">Party Score</label>
-          <input type="number" class="form-control" id="partyScore" required />
-        </div>
+        
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>
@@ -109,59 +107,37 @@
     <script>
       $(document).ready(function () {
         // Fetch LGAs
-        $.getJSON(
-          "https://maje.pythonanywhere.com/api/local_governments",
-          function (data) {
-            let lgaSelect = $("#lgaSelect");
-            $.each(data, function (key, entry) {
-              lgaSelect.append(
-                $("<option></option>")
-                  .attr("value", entry.lga_id)
-                  .text(entry.lga_name)
-              );
-            });
-          }
-        );
+        $.getJSON("https://maje.pythonanywhere.com/api/local_governments", function (data) {
+          let lgaSelect = $("#lgaSelect");
+          $.each(data, function (key, entry) {
+            lgaSelect.append($("<option></option>").attr("value", entry.lga_id).text(entry.lga_name));
+          });
+        });
 
         // Fetch Wards based on selected LGA
         $("#lgaSelect").change(function () {
           let lgaId = $(this).val();
           let wardSelect = $("#wardSelect");
           wardSelect.empty();
-          wardSelect.append(
-            $("<option></option>").attr("value", "").text("Select Ward")
-          );
+          wardSelect.append($("<option></option>").attr("value", "").text("Select Ward"));
           if (lgaId) {
-            $.getJSON(
-              `https://maje.pythonanywhere.com/api/wards_under_lga/${lgaId}`,
-              function (data) {
-                $.each(data, function (key, entry) {
-                  wardSelect.append(
-                    $("<option></option>")
-                      .attr("value", entry.ward_id)
-                      .text(entry.ward_name)
-                  );
-                  wardSelect.data(
-                    "uniqueid-" + entry.ward_id,
-                    entry.uniquewardid
-                  );
-                });
-              }
-            );
+            $.getJSON(`https://maje.pythonanywhere.com/api/wards_under_lga/${lgaId}`, function (data) {
+              $.each(data, function (key, entry) {
+                wardSelect.append($("<option></option>").attr("value", entry.ward_id).text(entry.ward_name));
+                wardSelect.data("uniqueid-" + entry.ward_id, entry.uniquewardid);
+              });
+            });
           }
         });
 
         // Get user's geolocation and fill latitude and longitude fields
         if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            function (position) {
-              $("#latitude").val(position.coords.latitude);
-              $("#longitude").val(position.coords.longitude);
-            },
-            function (error) {
-              console.error("Error getting geolocation: ", error);
-            }
-          );
+          navigator.geolocation.getCurrentPosition(function (position) {
+            $("#latitude").val(position.coords.latitude);
+            $("#longitude").val(position.coords.longitude);
+          }, function (error) {
+            console.error("Error getting geolocation: ", error);
+          });
         } else {
           console.error("Geolocation is not supported by this browser.");
         }
@@ -171,9 +147,7 @@
           event.preventDefault();
           let wardSelect = $("#wardSelect");
           let selectedWardId = wardSelect.val();
-          let selectedWardUniqueId = wardSelect.data(
-            "uniqueid-" + selectedWardId
-          );
+          let selectedWardUniqueId = wardSelect.data("uniqueid-" + selectedWardId);
 
           let formData = {
             lga_id: $("#lgaSelect").val(),
@@ -187,11 +161,13 @@
             entered_by_user: $("#enteredByUser").val(),
             user_ip_address: $("#userIpAddress").val(),
             results: [
-              {
-                party_abbreviation: $("#partyAbbreviation").val(),
-                party_score: $("#partyScore").val(),
-              },
-            ],
+              { party_abbreviation: "PDP", party_score: $("#partyPDP").val() },
+              { party_abbreviation: "DPP", party_score: $("#partyDPP").val() },
+              { party_abbreviation: "ACN", party_score: $("#partyACN").val() },
+              { party_abbreviation: "PPA", party_score: $("#partyPPA").val() },
+              { party_abbreviation: "CDC", party_score: $("#partyCDC").val() },
+              { party_abbreviation: "JP", party_score: $("#partyJP").val() }
+            ]
           };
           $.ajax({
             url: "https://maje.pythonanywhere.com/api/post_new_polling_unit_result/",
@@ -201,11 +177,7 @@
             success: function (response) {
               alert("Polling unit result posted successfully!");
               $("#pollingUnitForm")[0].reset();
-              $("#wardSelect")
-                .empty()
-                .append(
-                  $("<option></option>").attr("value", "").text("Select Ward")
-                );
+              $("#wardSelect").empty().append($("<option></option>").attr("value", "").text("Select Ward"));
             },
             error: function (error) {
               alert("An error occurred while posting the polling unit result.");
